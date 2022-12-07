@@ -1,58 +1,45 @@
 import socket
 import os
+# import Scanner
 
 
 def log(logs):
     with open('Log.txt', mode='a') as f:
         f.write(logs+'\n')
+    return logs
 
 
-if 'Log.txt' in os.listdir(os.getcwd()):
-    os.remove(os.getcwd()+'\\Log.txt')
+open('Log.txt', mode='w').close()
+
+port = int(input('Input a port: '))
+sock = socket.socket()
+sock.bind(('', port))
+print(log('Server start on: {}.\nPort: {}'.format(*sock.getsockname())))
+sock.listen(1)
+fl = False
 
 while True:
-    if not 'Log.txt' in os.listdir(os.getcwd()):
-        open('Log.txt', mode='w').close()
-    sock1 = socket.socket()
-    sock1.bind(('localhost', 1))
-    while True:
-        sock1.listen(1)
-        conn, addr = sock1.accept()
-        try:
-            host_name = conn.recv(1024).decode()
-            port = int(conn.recv(1024).decode())
-        except:
-            continue
-        conn.close()
-        sock1.close()
-        if 0 < port <= 65535:
-            break
-    print(host_name, port)
-    fl = False
-    sock2 = socket.socket()
-    sock2.bind((host_name, port))
-    log(f'Server start on: {host_name}.\nPort: {port}')
-    sock2.listen(1)
-    log('Waiting for connection.....')
-    conn, addr = sock2.accept()
-
-    log('Connected: {}. Port: {}'.format(*addr))
-
+    print(log('Waiting for connection.....'))
+    conn, addr = sock.accept()
+    print(log('Connected: {}. Port: {}'.format(*addr)))
     while True:
         data = conn.recv(1024)
-        log(f'Data received.')
-        log(f'Data: {data.decode()}')
+        print(log(f'Data received.'))
+        print(log(f'Data: {data.decode()}'))
         if data.decode().upper() == 'EXIT':
             conn.close()
+            print(log('Connection closed.'))
             break
         elif data.decode().upper() == 'CLOSE':
-            conn.close()
             fl = True
+            conn.close()
             break
         else:
-            conn.sendall(data.upper())
-            log('Data sent.')
-    log('Connection closed')
+            conn.send(data.upper())
+            print(log('Data sent.'))
     if fl:
+        sock.close()
+        print(log('Socket closed'))
         break
-sock2.close()
+
+
